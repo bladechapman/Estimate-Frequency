@@ -1,8 +1,6 @@
 # Estimate Frequency
+Works best on solid tones (see data directory) <br>
+Requires numpy
 
-Works best on solid tones (see data directory)
-
-Require numpy
-
-[data source](http://www.mediacollege.com/audio/tone/download/)
+[data source](http://www.mediacollege.com/audio/tone/download/)<br>
 [reference](http://stackoverflow.com/questions/604453/analyze-audio-using-fast-fourier-transform)
