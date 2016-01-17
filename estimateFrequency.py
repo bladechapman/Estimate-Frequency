@@ -41,5 +41,7 @@ def findMaxIndex(array):
 
 if __name__ == '__main__':
     import profile
-    profile.run("estimateFrequency('./data/range.wav', 3000)")
-    print estimateFrequency('./data/range.wav', 3000)
+    import matplotlib.pyplot as plt
+
+    plt.plot(estimateFrequency('./data/range.wav', 3000))
+    plt.show()
