@@ -10,24 +10,33 @@ import numpy
 
 VECTORIZED_MAGNITUDE = numpy.vectorize(lambda x: x.real**2 + x.imag**2)
 
-def estimateFrequency(fname, nframes):
+def estimateFrequency(fname):
     (wav_info, wav_data) = wavLoad(fname)
     total_frames = wav_info[3]
+    framerate = wav_info[2]
+    nframes = int(framerate / 20)
+
     frequency_spacing = float(wav_info[2]) / nframes
     frequencies = []
+
     for i in range(nframes, total_frames, nframes):
         fft = numpy.fft.fft(wav_data[(i - nframes):i])
         frequency_magnitudes = VECTORIZED_MAGNITUDE(fft)
-        estimated_index = findMaxIndex(frequency_magnitudes[0: nframes/2])
-        estimated_frequency = estimated_index * frequency_spacing
+        estimated_index = findMaxIndex(frequency_magnitudes[1: nframes/2])
+        estimated_frequency = (estimated_index + 1) * frequency_spacing
         frequencies.append(estimated_frequency)
     return frequencies
 
 def wavLoad(fname):
-   wav = wave.open(fname, "r")
-   params = (nchannels, sampwidth, framerate, nframes, comptype, compname) = wav.getparams()
-   frames = wav.readframes(nframes * nchannels)
-   return (params, struct.unpack_from("%dh" % (nframes * nchannels), frames))
+    wav = wave.open(fname, "r")
+    params = (nchannels, sampwidth, framerate, nframes, comptype, compname) = wav.getparams()
+    frames = wav.readframes(nframes * nchannels)
+    if sampwidth == 1:
+        fmt = "%dB" % (nframes * nchannels)
+    else:
+        fmt = "%dH" % (nframes * nchannels)
+
+    return (params, struct.unpack_from(fmt, frames))
 
 def findMaxIndex(array):
     current_max_value = float('-inf')
@@ -43,5 +52,6 @@ if __name__ == '__main__':
     import profile
     import matplotlib.pyplot as plt
 
-    plt.plot(estimateFrequency('./data/range.wav', 3000))
+    data = estimateFrequency('./data/range.wav')
+    plt.scatter(range(0, len(data)), data)
     plt.show()
