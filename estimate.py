@@ -8,28 +8,26 @@ import numpy
 # data:
 # http://www.mediacollege.com/audio/tone/download/
 
+VECTORIZED_MAGNITUDE = numpy.vectorize(lambda x: x.real**2 + x.imag**2)
+
 def estimateFrequency(fname, nframes):
     (wav_info, wav_data) = wavLoad(fname)
-
-    data_256 = wav_data[0:nframes]
-    data_256_np = numpy.array(data_256)
-    data_256_fft = numpy.fft.fft(data_256_np)
-
-    frequency_magnitudes = resolveMagnitudes(data_256_fft)
+    total_frames = wav_info[3]
     frequency_spacing = float(wav_info[2]) / nframes
-
-    estimated_index = findMaxIndex(frequency_magnitudes[0: nframes/2])
-    print 'estimated frequency: %dHz' % (frequency_spacing * estimated_index)
+    frequencies = []
+    for i in range(nframes, total_frames, nframes):
+        fft = numpy.fft.fft(wav_data[(i - nframes):i])
+        frequency_magnitudes = VECTORIZED_MAGNITUDE(fft)
+        estimated_index = findMaxIndex(frequency_magnitudes[0: nframes/2])
+        estimated_frequency = estimated_index * frequency_spacing
+        frequencies.append(estimated_frequency)
+    return frequencies
 
 def wavLoad(fname):
    wav = wave.open(fname, "r")
-   (nchannels, sampwidth, framerate, nframes, comptype, compname) = wav.getparams()
+   params = (nchannels, sampwidth, framerate, nframes, comptype, compname) = wav.getparams()
    frames = wav.readframes(nframes * nchannels)
-   return (wav.getparams(), struct.unpack_from("%dh" % (nframes * nchannels), frames))
-
-def resolveMagnitudes(carray):
-    vectorized_magnitude = numpy.vectorize(lambda x: numpy.sqrt(x.real**2 + x.imag**2))
-    return vectorized_magnitude(carray)
+   return (params, struct.unpack_from("%dh" % (nframes * nchannels), frames))
 
 def findMaxIndex(array):
     current_max_value = float('-inf')
@@ -42,4 +40,6 @@ def findMaxIndex(array):
     return current_max_index
 
 if __name__ == '__main__':
-    estimateFrequency('./data/10000.wav', 3000)
+    import profile
+    profile.run("estimateFrequency('./data/range.wav', 3000)")
+    print estimateFrequency('./data/range.wav', 3000)
