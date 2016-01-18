@@ -7,16 +7,14 @@ import numpy
 
 # data:
 # http://www.mediacollege.com/audio/tone/download/
+# http://www.classicgaming.cc/classics/pacman/sounds.php
 
 VECTORIZED_MAGNITUDE = numpy.vectorize(lambda x: x.real**2 + x.imag**2)
 
 def estimateFrequency(fname):
-    (wav_info, wav_data) = wavLoad(fname)
-    total_frames = wav_info[3]
-    framerate = wav_info[2]
+    ((_, _, framerate, total_frames, _, _), wav_data) = wavLoad(fname)
     nframes = int(framerate / 20)
-
-    frequency_spacing = float(wav_info[2]) / nframes
+    frequency_spacing = float(framerate) / nframes
     frequencies = []
 
     for i in range(nframes, total_frames, nframes):
@@ -29,7 +27,7 @@ def estimateFrequency(fname):
 
 def wavLoad(fname):
     wav = wave.open(fname, "r")
-    params = (nchannels, sampwidth, framerate, nframes, comptype, compname) = wav.getparams()
+    params = (nchannels, sampwidth, _, nframes, _, _) = wav.getparams()
     frames = wav.readframes(nframes * nchannels)
     if sampwidth == 1:
         fmt = "%dB" % (nframes * nchannels)
@@ -49,9 +47,13 @@ def findMaxIndex(array):
     return current_max_index
 
 if __name__ == '__main__':
-    import profile
     import matplotlib.pyplot as plt
+    import argparse
 
-    data = estimateFrequency('./data/range.wav')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-source', default='./data/range.wav', help='wav file to be analyzed; defaults to ./data/range.wav')
+    args = parser.parse_args()
+
+    data = estimateFrequency(args.source)
     plt.scatter(range(0, len(data)), data)
     plt.show()
