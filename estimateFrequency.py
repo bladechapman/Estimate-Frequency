@@ -29,22 +29,13 @@ def wavLoad(fname):
     wav = wave.open(fname, "r")
     params = (nchannels, sampwidth, _, nframes, _, _) = wav.getparams()
     frames = wav.readframes(nframes * nchannels)
-    if sampwidth == 1:
-        fmt = "%dB" % (nframes * nchannels)
-    else:
-        fmt = "%dH" % (nframes * nchannels)
+    fmt = "%dB" % (nframes * nchannels) if sampwidth == 1 else "%dH" % (nframes * nchannels)
 
     return (params, struct.unpack_from(fmt, frames))
 
 def findMaxIndex(array):
-    current_max_value = float('-inf')
-    current_max_index = 0
-    for i in range(0, len(array)):
-        num = array[i]
-        if num > current_max_value:
-            current_max_value = num
-            current_max_index = i
-    return current_max_index
+    m = max(array)
+    return [i for i, j in enumerate(array) if j == m][0]
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
